@@ -116,7 +116,7 @@ CREATE TABLE department (
 CREATE TABLE schedule (
     index SERIAL PRIMARY KEY,
     subject_id INTEGER,
-    time TIMESTAMP,
+    time TIME,
     room_id INTEGER,
     FOREIGN KEY (subject_id) REFERENCES subject(index),
     FOREIGN KEY (room_id) REFERENCES room(index)
@@ -132,10 +132,9 @@ CREATE TABLE teacher_department (
 
 CREATE TABLE department_discipline (
     index SERIAL PRIMARY KEY,
-    department_id INTEGER,
+    name VARCHAR(100),
     discipline_id INTEGER,
-    FOREIGN KEY (discipline_id) REFERENCES discipline(index),
-	FOREIGN KEY (department_id) REFERENCES department(index)
+    FOREIGN KEY (discipline_id) REFERENCES discipline(index)
 );
 
 CREATE TABLE teacher_schedule (
@@ -162,23 +161,50 @@ VALUES
     ('Информатика'), --3
 	('Гуманитарный, социальный и экономический'); --4
 
-
+--SELECT * FROM discipline
 
 INSERT INTO subject (name, disc_id)
-VALUES
-	('Математический анализ I', (SELECT index FROM discipline WHERE name = 'Математический анализ')),
-    ('Математический анализ II', (SELECT index FROM discipline WHERE name = 'Математический анализ')),
-    ('Математический анализ III', (SELECT index FROM discipline WHERE name = 'Математический анализ')),
-    ('Математический анализ и Теория функций комплексного переменного', (SELECT index FROM discipline WHERE name = 'Математический анализ')),
-    ('Электродинамика', (SELECT index FROM discipline WHERE name = 'Современное естествознание')),
-    ('Классическая механика', (SELECT index FROM discipline WHERE name = 'Современное естествознание')),
-    ('Архитектура ЭВМ', (SELECT index FROM discipline WHERE name = 'Информатика')),
-    ('Операционные системы', (SELECT index FROM discipline WHERE name = 'Информатика')),
-    ('Системное программирование', (SELECT index FROM discipline WHERE name = 'Информатика')),
-    ('Социология', (SELECT index FROM discipline WHERE name = 'Гуманитарный, социальный и экономический')),
-    ('Лингвистическая культура', (SELECT index FROM discipline WHERE name = 'Гуманитарный, социальный и экономический')),
-    ('Межфакультетские курсы', (SELECT index FROM discipline WHERE name = 'Гуманитарный, социальный и экономический')),
-    ('Гумманитарные курсы по выбору', (SELECT index FROM discipline WHERE name = 'Гуманитарный, социальный и экономический'));
+	SELECT 'Математический анализ I', discipline.index FROM discipline
+	WHERE discipline.name = 'Математический анализ'
+	UNION ALL
+	SELECT 'Математический анализ II', discipline.index FROM discipline
+	WHERE discipline.name = 'Математический анализ'
+	UNION ALL
+	SELECT 'Математический анализ III', discipline.index FROM discipline
+	WHERE discipline.name = 'Математический анализ'
+	UNION ALL
+	SELECT 'Математический анализ и Теория функций комплексного переменного', discipline.index FROM discipline
+	WHERE discipline.name = 'Математический анализ'
+	UNION ALL
+
+	SELECT 'Электродинамика', discipline.index FROM discipline
+	WHERE discipline.name = 'Современное естествознание'
+	UNION ALL
+	SELECT 'Классическая механика', discipline.index FROM discipline
+	WHERE discipline.name = 'Современное естествознание'
+	UNION ALL
+	
+	SELECT 'Архитектура ЭВМ', discipline.index FROM discipline
+	WHERE discipline.name = 'Информатика'
+	UNION ALL
+	SELECT 'Операционные системы', discipline.index FROM discipline
+	WHERE discipline.name = 'Информатика'
+	UNION ALL
+	SELECT 'Системное программирование', discipline.index FROM discipline
+	WHERE discipline.name = 'Информатика'
+	UNION ALL
+	
+	SELECT 'Социология', discipline.index FROM discipline
+	WHERE discipline.name = 'Гуманитарный, социальный и экономический'
+	UNION ALL
+	SELECT 'Лингвистическая культура', discipline.index FROM discipline
+	WHERE discipline.name = 'Гуманитарный, социальный и экономический'
+	UNION ALL
+	SELECT 'Межфакультетские курсы', discipline.index FROM discipline
+	WHERE discipline.name = 'Гуманитарный, социальный и экономический'
+	UNION ALL
+	SELECT 'Гумманитарные курсы по выбору', discipline.index FROM discipline
+	WHERE discipline.name = 'Гуманитарный, социальный и экономический'
 	
     --('Математический анализ I', 1), --1
 	--('Математический анализ II', 1), --2
@@ -200,15 +226,14 @@ VALUES
 
 	
 
---SELECT * FROM discipline
---SELECT * from subject
+SELECT * FROM discipline
+SELECT * from subject
 
 
 
 INSERT INTO variativity_part (name)
 VALUES
 	('Гуманитарный, социальный и экономический'); --1
-
 
 INSERT INTO subject_varparts (varpart_id ,subject_id)
 	SELECT v.index AS varpart_id, s.index AS subject_id FROM variativity_part as v
@@ -223,7 +248,7 @@ INSERT INTO subject_varparts (varpart_id ,subject_id)
 	SELECT v.index AS varpart_id, s.index AS subject_id FROM variativity_part as v
 	JOIN subject AS s ON v.name = 'Гуманитарный, социальный и экономический' AND s.name = 'Гумманитарные курсы по выбору'
 	
---SELECT * FROM subject_varparts	
+SELECT * FROM subject_varparts	
 	--(1, 8),
 	--(1, 9),
 	--(1, 10),
@@ -933,7 +958,12 @@ VALUES
     ('Соколов Сокол Соколович', 1, (SELECT index FROM group_ WHERE name = '408')),
     ('Кузнецов Кузьма Кузьмич', 1, (SELECT index FROM group_ WHERE name = '408'));
 
-SELECT * FROM student
+
+SELECT g.name, s.full_name, s.index
+FROM group_ as g
+JOIN student as s ON s.group_id = g.index
+
+
 
 INSERT INTO room (name)
 VALUES
@@ -972,22 +1002,23 @@ VALUES
 
 INSERT INTO schedule (subject_id, time, room_id)
 VALUES
-    ((SELECT index FROM subject WHERE name = 'Математический анализ I'), '2023-10-01 08:00:00', (SELECT index FROM room WHERE name = 'Аудитория 303')),
-    ((SELECT index FROM subject WHERE name = 'Математический анализ II'), '2023-10-01 09:00:00', (SELECT index FROM room WHERE name = 'Аудитория 504')),
-    ((SELECT index FROM subject WHERE name = 'Математический анализ III'), '2023-10-01 10:00:00', (SELECT index FROM room WHERE name = 'Аудитория 701')),
-    ((SELECT index FROM subject WHERE name = 'Электродинамика'), '2023-10-01 11:00:00', (SELECT index FROM room WHERE name = 'Аудитория 304')),
-    ((SELECT index FROM subject WHERE name = 'Классическая механика'), '2023-10-01 12:00:00', (SELECT index FROM room WHERE name = 'Аудитория 505')),
-    ((SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'), '2023-10-01 13:00:00', (SELECT index FROM room WHERE name = 'Аудитория 702')),
-    ((SELECT index FROM subject WHERE name = 'Операционные системы'), '2023-10-01 14:00:00', (SELECT index FROM room WHERE name = 'Аудитория 305')),
-    ((SELECT index FROM subject WHERE name = 'Социология'), '2023-10-01 15:00:00', (SELECT index FROM room WHERE name = 'Аудитория 506')),
-    ((SELECT index FROM subject WHERE name = 'Лингвистическая культура'), '2023-10-01 16:00:00', (SELECT index FROM room WHERE name = 'Аудитория 703')),
-    ((SELECT index FROM subject WHERE name = 'Межфакультетские курсы'), '2023-10-01 17:00:00', (SELECT index FROM room WHERE name = 'Аудитория 306'));
+    ((SELECT index FROM subject WHERE name = 'Математический анализ I'), '08:00:00', (SELECT index FROM room WHERE name = 'Аудитория 303')),
+    ((SELECT index FROM subject WHERE name = 'Математический анализ II'), '09:00:00', (SELECT index FROM room WHERE name = 'Аудитория 504')),
+    ((SELECT index FROM subject WHERE name = 'Математический анализ III'), '10:00:00', (SELECT index FROM room WHERE name = 'Аудитория 701')),
+    ((SELECT index FROM subject WHERE name = 'Электродинамика'), '11:00:00', (SELECT index FROM room WHERE name = 'Аудитория 304')),
+    ((SELECT index FROM subject WHERE name = 'Классическая Механика'), '12:00:00', (SELECT index FROM room WHERE name = 'Аудитория 505')),
+    ((SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'), '13:00:00', (SELECT index FROM room WHERE name = 'Аудитория 702')),
+    ((SELECT index FROM subject WHERE name = 'Операционные системы'), '14:00:00', (SELECT index FROM room WHERE name = 'Аудитория 305')),
+    ((SELECT index FROM subject WHERE name = 'Социология'), '15:00:00', (SELECT index FROM room WHERE name = 'Аудитория 506')),
+    ((SELECT index FROM subject WHERE name = 'Лингвистическая культура'), '16:00:00', (SELECT index FROM room WHERE name = 'Аудитория 703')),
+    ((SELECT index FROM subject WHERE name = 'Межфакультетские курсы'), '17:00:00', (SELECT index FROM room WHERE name = 'Аудитория 306'));
 
 
 INSERT INTO teacher_department (teacher_id, department_id)
 VALUES
     ((SELECT index FROM teacher WHERE full_name = 'Иванов Иван Иванович'), (SELECT index FROM department WHERE name = 'Кафедра математического анализа')),
     ((SELECT index FROM teacher WHERE full_name = 'Петров Петр Петрович'), (SELECT index FROM department WHERE name = 'Кафедра математического анализа')),
+	((SELECT index FROM teacher WHERE full_name = 'Васильев Дмитрий Алексеевич'), (SELECT index FROM department WHERE name = 'Кафедра математического анализа')),
     ((SELECT index FROM teacher WHERE full_name = 'Сидоров Сидор Сидорович'), (SELECT index FROM department WHERE name = 'Кафедра математического анализа')),
     ((SELECT index FROM teacher WHERE full_name = 'Кузнецова Анна Сергеевна'), (SELECT index FROM department WHERE name = 'Кафедра физики')),
     ((SELECT index FROM teacher WHERE full_name = 'Смирнова Елена Владимировна'), (SELECT index FROM department WHERE name = 'Кафедра физики')),
@@ -997,15 +1028,11 @@ VALUES
     ((SELECT index FROM teacher WHERE full_name = 'Михайлов Андрей Викторович'), (SELECT index FROM department WHERE name = 'Кафедра гуманитарных наук')),
     ((SELECT index FROM teacher WHERE full_name = 'Федорова Наталья Сергеевна'), (SELECT index FROM department WHERE name = 'Кафедра гуманитарных наук'));
 
-SELECT * FROM teacher_department
+SELECT d.name, t.full_name, t.index
+FROM department as d
+JOIN teacher_department as dt ON dt.department_id = d.index
+JOIN teacher as t ON t.index = dt.teacher_id
 
---------------------------------------
-CREATE TABLE department_discipline (
-    index SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    discipline_id INTEGER,
-    FOREIGN KEY (discipline_id) REFERENCES discipline(index)
-);
 
 INSERT INTO department_discipline (name, discipline_id)
 VALUES
@@ -1014,38 +1041,50 @@ VALUES
     ('Кафедра информатики', (SELECT index FROM discipline WHERE name = 'Информатика')),
     ('Кафедра гуманитарных наук', (SELECT index FROM discipline WHERE name = 'Гуманитарный, социальный и экономический'));
 
+INSERT INTO teacher_schedule (teacher_id, lesson_id)
+VALUES
+    ((SELECT index FROM teacher WHERE full_name = 'Иванов Иван Иванович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Петров Петр Петрович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Сидоров Сидор Сидорович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Кузнецова Анна Сергеевна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Смирнова Елена Владимировна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Попова Мария Александровна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Васильев Дмитрий Алексеевич'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Соколова Ольга Ивановна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Михайлов Андрей Викторович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура'))),
+    ((SELECT index FROM teacher WHERE full_name = 'Федорова Наталья Сергеевна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Межфакультетские курсы')));
+
+-- Вставка данных для расписания занятий для групп
+INSERT INTO group_schedule (group_id, lesson_id)
+VALUES
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I'))),
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II'))),
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III'))),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I'))),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II'))),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III'))),
+    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика'))),
+    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика'))),
+    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика'))),
+    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика'))),
+    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'))),
+    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы'))),
+    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'))),
+    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы'))),
+    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология'))),
+    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура'))),
+    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология'))),
+    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура')));
+
+
+SELECT g.name, s.name, sc.time
+FROM group_ as g
+JOIN group_schedule as gs ON gs.group_id = g.index
+JOIN schedule as sc ON gs.lesson_id = sc.index
+JOIN subject as s ON s.index = sc.subject_id
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-CREATE TABLE teacher_schedule (
-    index SERIAL PRIMARY KEY,
-    teacher_id INTEGER,
-    lesson_id INTEGER,
-    FOREIGN KEY (teacher_id) REFERENCES teacher(index),
-	FOREIGN KEY (lesson_id) REFERENCES schedule(index)
-);
-
-CREATE TABLE group_schedule (
-    index SERIAL PRIMARY KEY,
-    group_id INTEGER,
-    lesson_id INTEGER,
-    FOREIGN KEY (group_id) REFERENCES group_(index),
-	FOREIGN KEY (lesson_id) REFERENCES schedule(index)
-);
 
 
 TRUNCATE TABLE discipline CASCADE;

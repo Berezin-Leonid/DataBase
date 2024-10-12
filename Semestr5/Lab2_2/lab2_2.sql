@@ -116,7 +116,7 @@ CREATE TABLE department (
 CREATE TABLE schedule (
     index SERIAL PRIMARY KEY,
     subject_id INTEGER,
-    time TIME,
+    time TIMESTAMP,
     room_id INTEGER,
     FOREIGN KEY (subject_id) REFERENCES subject(index),
     FOREIGN KEY (room_id) REFERENCES room(index)
@@ -161,7 +161,7 @@ VALUES
     ('Информатика'), --3
 	('Гуманитарный, социальный и экономический'); --4
 
---SELECT * FROM discipline
+
 
 INSERT INTO subject (name, disc_id)
 	SELECT 'Математический анализ I', discipline.index FROM discipline
@@ -224,12 +224,6 @@ INSERT INTO subject (name, disc_id)
 	--('Математический анализ и Теория функций комплексного переменного', 1), --12
 	--('Системное программирование', 3), --13
 
-	
-
-SELECT * FROM discipline
-SELECT * from subject
-
-
 
 INSERT INTO variativity_part (name)
 VALUES
@@ -273,7 +267,7 @@ VALUES
     ('ВМК ПМИ', 1);
 
 
-SELECT * FROM study_plan	
+	
 
 INSERT INTO distribution (plan_id, subject_id, semestr_id)
 	SELECT p.index as pl_id, sub.index as sub_i, sem.index as sem_i FROM study_plan as p
@@ -371,7 +365,7 @@ VALUES
 	('Семинары'),
 	('Самостоятельная работа студентов');
 
-SELECT * FROM hours_type
+
 
 INSERT INTO distribution_hours (distr_id, hours_type_id, volume)
 --Matan I
@@ -959,11 +953,6 @@ VALUES
     ('Кузнецов Кузьма Кузьмич', 1, (SELECT index FROM group_ WHERE name = '408'));
 
 
-SELECT g.name, s.full_name, s.index
-FROM group_ as g
-JOIN student as s ON s.group_id = g.index
-
-
 
 INSERT INTO room (name)
 VALUES
@@ -980,16 +969,16 @@ VALUES
 
 
 INSERT INTO teacher (full_name) VALUES
-('Иванов Иван Иванович'),
-('Петров Петр Петрович'),
-('Сидоров Сидор Сидорович'),
-('Кузнецова Анна Сергеевна'),
-('Смирнова Елена Владимировна'),
-('Попова Мария Александровна'),
-('Васильев Дмитрий Алексеевич'),
-('Соколова Ольга Ивановна'),
-('Михайлов Андрей Викторович'),
-('Федорова Наталья Сергеевна');
+	('Иванов Иван Иванович'),
+	('Петров Петр Петрович'),
+	('Сидоров Сидор Сидорович'),
+	('Кузнецова Анна Сергеевна'),
+	('Смирнова Елена Владимировна'),
+	('Попова Мария Александровна'),
+	('Васильев Дмитрий Алексеевич'),
+	('Соколова Ольга Ивановна'),
+	('Михайлов Андрей Викторович'),
+	('Федорова Наталья Сергеевна');
 
 
 INSERT INTO department (name)
@@ -1002,17 +991,16 @@ VALUES
 
 INSERT INTO schedule (subject_id, time, room_id)
 VALUES
-    ((SELECT index FROM subject WHERE name = 'Математический анализ I'), '08:00:00', (SELECT index FROM room WHERE name = 'Аудитория 303')),
-    ((SELECT index FROM subject WHERE name = 'Математический анализ II'), '09:00:00', (SELECT index FROM room WHERE name = 'Аудитория 504')),
-    ((SELECT index FROM subject WHERE name = 'Математический анализ III'), '10:00:00', (SELECT index FROM room WHERE name = 'Аудитория 701')),
-    ((SELECT index FROM subject WHERE name = 'Электродинамика'), '11:00:00', (SELECT index FROM room WHERE name = 'Аудитория 304')),
-    ((SELECT index FROM subject WHERE name = 'Классическая Механика'), '12:00:00', (SELECT index FROM room WHERE name = 'Аудитория 505')),
-    ((SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'), '13:00:00', (SELECT index FROM room WHERE name = 'Аудитория 702')),
-    ((SELECT index FROM subject WHERE name = 'Операционные системы'), '14:00:00', (SELECT index FROM room WHERE name = 'Аудитория 305')),
-    ((SELECT index FROM subject WHERE name = 'Социология'), '15:00:00', (SELECT index FROM room WHERE name = 'Аудитория 506')),
-    ((SELECT index FROM subject WHERE name = 'Лингвистическая культура'), '16:00:00', (SELECT index FROM room WHERE name = 'Аудитория 703')),
-    ((SELECT index FROM subject WHERE name = 'Межфакультетские курсы'), '17:00:00', (SELECT index FROM room WHERE name = 'Аудитория 306'));
-
+     ((SELECT index FROM subject WHERE name = 'Математический анализ I'), '01-10-2023 08:00:00', (SELECT index FROM room WHERE name = 'Аудитория 303')),
+    ((SELECT index FROM subject WHERE name = 'Математический анализ II'), '01-10-2023 09:00:00', (SELECT index FROM room WHERE name = 'Аудитория 504')),
+    ((SELECT index FROM subject WHERE name = 'Математический анализ III'), '01-10-2023 10:00:00', (SELECT index FROM room WHERE name = 'Аудитория 701')),
+    ((SELECT index FROM subject WHERE name = 'Электродинамика'), '01-10-2023 11:00:00', (SELECT index FROM room WHERE name = 'Аудитория 304')),
+    ((SELECT index FROM subject WHERE name = 'Классическая механика'), '01-10-2023 12:00:00', (SELECT index FROM room WHERE name = 'Аудитория 505')),
+    ((SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'), '01-10-2023 13:00:00', (SELECT index FROM room WHERE name = 'Аудитория 702')),
+    ((SELECT index FROM subject WHERE name = 'Операционные системы'), '01-10-2023 14:00:00', (SELECT index FROM room WHERE name = 'Аудитория 305')),
+    ((SELECT index FROM subject WHERE name = 'Социология'), '01-10-2023 15:00:00', (SELECT index FROM room WHERE name = 'Аудитория 506')),
+    ((SELECT index FROM subject WHERE name = 'Лингвистическая культура'), '01-10-2023 16:00:00', (SELECT index FROM room WHERE name = 'Аудитория 703')),
+    ((SELECT index FROM subject WHERE name = 'Межфакультетские курсы'), '01-10-2023 17:00:00', (SELECT index FROM room WHERE name = 'Аудитория 306'));
 
 INSERT INTO teacher_department (teacher_id, department_id)
 VALUES
@@ -1028,10 +1016,7 @@ VALUES
     ((SELECT index FROM teacher WHERE full_name = 'Михайлов Андрей Викторович'), (SELECT index FROM department WHERE name = 'Кафедра гуманитарных наук')),
     ((SELECT index FROM teacher WHERE full_name = 'Федорова Наталья Сергеевна'), (SELECT index FROM department WHERE name = 'Кафедра гуманитарных наук'));
 
-SELECT d.name, t.full_name, t.index
-FROM department as d
-JOIN teacher_department as dt ON dt.department_id = d.index
-JOIN teacher as t ON t.index = dt.teacher_id
+
 
 
 INSERT INTO department_discipline (name, discipline_id)
@@ -1077,12 +1062,46 @@ VALUES
     ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура')));
 
 
-SELECT g.name, s.name, sc.time
+
+SELECT * FROM discipline
+
+--Распределение предметов
+SELECT d.name, s.name, s.index
+FROM discipline as d
+JOIN subject as s ON s.disc_id = d.index
+WHERE d.name = 'Математический анализ'
+
+--Учебные планы
+SELECT * FROM study_plan
+
+--Типы часов
+SELECT * FROM hours_type
+
+--Распределение студентов по группам
+SELECT g.name, s.full_name, s.index
+FROM group_ as g
+JOIN student as s ON s.group_id = g.index
+
+
+
+--Распределение преподавателей по кафедрам
+SELECT d.name, t.full_name, t.index
+FROM department as d
+JOIN teacher_department as dt ON dt.department_id = d.index
+JOIN teacher as t ON t.index = dt.teacher_id
+--WHERE 
+--AND
+
+
+--Расписание для групп
+SELECT g.name, s.name, TO_CHAR(sc.time, 'DD/MM/YYYY HH24:MI:SS')
 FROM group_ as g
 JOIN group_schedule as gs ON gs.group_id = g.index
 JOIN schedule as sc ON gs.lesson_id = sc.index
 JOIN subject as s ON s.index = sc.subject_id
-
+--WHERE sc.time::DATE = '01-10-2023'
+--AND sc.time::TIME > '14:00:00'
+--AND g.name='407'
 
 
 

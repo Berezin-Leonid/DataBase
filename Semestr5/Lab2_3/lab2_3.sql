@@ -68,6 +68,318 @@ JOIN room as r ON r.index = sch.room_id
 GROUP BY (group_name, subject)
 ORDER BY group_name
 
+---Несоотвествие часов
+	(
+	SELECT  sp.name as study_plan, sp.index as plan_id,
+			sem.name as semestr, sem.index as sem_id, 
+			sub.name as subject, sub.index as subject_id, 
+			h.name as hour_type, h.index as hour_index,
+			(disth.volume) as volume
+	FROM subject as sub
+	JOIN distribution as dist ON dist.subject_id = sub.index
+	JOIN distribution_hours as disth ON disth.distr_id = dist.index
+	JOIN hours_type as h ON h.index = disth.hours_type_id
+	JOIN discipline as disc ON disc.index = sub.disc_id
+	JOIN semestr as sem ON sem.index = dist.semestr_id
+	JOIN study_plan as sp ON dist.plan_id = sp.index
+	WHERE  sp.name = 'ВМК ПМИ'
+		AND h.name != 'Самостоятельная работа студентов'
+	--GROUP BY sp.name, sem.name, subject
+	ORDER BY sem.name
+	)
+
+
+
+
+	WITH ranked_students AS (
+    SELECT
+        s.*,
+        ROW_NUMBER() OVER (PARTITION BY s.group_id ORDER BY s.index) AS rn
+    FROM
+        student AS s
+	)
+	SELECT  s.plan_id,
+			g.name AS group_name, g.index AS group_id,
+			sub.name AS subject, sub.index AS subject_id,
+			COUNT(*) * 2 AS real_academic_hours, sch.hours_type_id
+	FROM group_ AS g
+	JOIN ranked_students AS s ON s.group_id = g.index AND s.rn = 1
+	JOIN group_schedule AS gsch ON g.index = gsch.group_id
+	JOIN schedule AS sch ON sch.index = gsch.lesson_id
+	JOIN subject AS sub ON sub.index = sch.subject_id
+	JOIN room AS r ON r.index = sch.room_id
+	-- WHERE g.name = '307'
+	GROUP BY s.plan_id, g.name,g.index, sch.hours_type_id, sub.name, sub.index
+	ORDER BY group_name;
+
+--new 1
+
+
+INSERT INTO schedule (subject_id, time, room_id, hours_type_id)
+VALUES
+    (
+		(SELECT index FROM subject WHERE name = 'Математический анализ I'), 
+		'01-10-2023 12:15:00', (SELECT index FROM room WHERE name = 'Аудитория 303'), 
+		(SELECT index FROM hours_type WHERE name ='Семинары')
+	)
+
+INSERT INTO group_schedule (group_id, lesson_id)
+VALUES
+    (
+		(SELECT index FROM group_ WHERE name = '107'), 
+		(SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+			AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') AND time = '01-10-2023 12:15:00')
+	)
+	    
+INSERT INTO teacher_schedule (teacher_id, lesson_id)
+VALUES
+    (
+		(SELECT index FROM teacher WHERE full_name = 'Иванов Иван Иванович'), 
+		(SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+			AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') AND time = '01-10-2023 12:15:00' )
+	)
+    
+	
+
+
+	WITH ranked_students AS (
+    SELECT
+        s.*,
+        ROW_NUMBER() OVER (PARTITION BY s.group_id ORDER BY s.index) AS rn
+    FROM
+        student AS s
+	)
+	SELECT  s.plan_id,
+			g.name AS group_name, g.index AS group_id,
+			sub.name AS subject, sub.index AS subject_id,
+			sch.hours_type_id,
+			COUNT(*) * 2 AS real_academic_hours,  
+			disth.volume
+			
+	FROM group_ AS g
+	JOIN ranked_students AS s ON s.group_id = g.index AND s.rn = 1
+	JOIN group_schedule AS gsch ON g.index = gsch.group_id
+	JOIN schedule AS sch ON sch.index = gsch.lesson_id
+	JOIN subject AS sub ON sub.index = sch.subject_id
+	JOIN room AS r ON r.index = sch.room_id
+	JOIN distribution as d ON d.plan_id = s.plan_id
+			AND d.subject_id = sub.index
+			AND d.semestr_id = g.semestr_id
+	JOIN distribution_hours as disth ON d.index = disth.distr_id
+			AND disth.hours_type_id = sch.hours_type_id
+	-- WHERE g.name = '307'
+	GROUP BY s.plan_id, g.name,g.index, sch.hours_type_id, sub.name, sub.index, disth.volume
+	ORDER BY group_name;
+
+
+
+
+--end new1
+
+
+-- new 2
+
+--searching free time for groups
+SELECT TO_CHAR(sch.time, 'DD/MM/YYYY HH24:MI:SS')
+FROM group_schedule as gs
+JOIN group_ as g ON gs.group_id = g.index
+JOIN schedule AS sch ON gs.lesson_id = sch.index
+WHERE g.name = '107' AND TO_CHAR(sch.time, 'DD/MM/YYYY') = '10/01/2023'
+
+
+INSERT INTO schedule (subject_id, time, room_id, hours_type_id)
+VALUES
+    (
+		(SELECT index FROM subject WHERE name = 'Математический анализ I'), 
+		'01-10-2023 12:15:00', 
+		NULL, --room
+		(SELECT index FROM hours_type WHERE name ='Семинары')
+	)
+
+INSERT INTO group_schedule (group_id, lesson_id)
+VALUES
+    (
+		(SELECT index FROM group_ WHERE name = '107'), 
+		(SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+			AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') AND time = '01-10-2023 12:15:00')
+	)
+
+--...
+
+INSERT INTO teacher_schedule (teacher_id, lesson_id)
+VALUES
+    (
+		(SELECT index FROM teacher WHERE full_name = 'Иванов Иван Иванович'),
+		(SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+			AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') AND time = '01-10-2023 12:15:00' )
+	)
+	
+--...
+
+--searching auditory for lesson
+SELECT 	l.index,
+		l.time,
+		SUM(group_volume.volume)
+FROM schedule as l
+JOIN group_schedule as gsch ON gsch.lesson_id = l.index
+JOIN 
+	(
+		SELECT 	g.index,
+				COUNT(*) as volume
+		FROM group_ as g
+		JOIN student as s ON s.group_id = g.index
+		GROUP BY g.index
+		ORDER BY g.index
+	) as group_volume ON group_volume.index = gsch.group_id
+GROUP BY l.index, l.time
+
+
+
+WITH busy_room AS (
+	SELECT 	r.index,
+			r.name
+	FROM room as r
+	JOIN schedule as s ON s.room_id = r.index
+	WHERE s.time = '01-10-2023 12:15:00'
+)
+SELECT 	r.name
+FROM room as r
+WHERE r.index NOT IN (SELECT index FROM busy_room)
+
+
+UPDATE schedule s
+SET room_id = 'room id'
+WHERE s.subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I')
+	AND s.time = '01-10-2023 12:15:00'
+	AND s.hour_type = (SELECT index FROM hours_type WHERE name ='Семинары')
+
+--searching free room with capacity for out groups
+
+
+--Группы у которых недостаток часов в предметах
+WITH ranked_students AS (
+    SELECT
+        s.*,
+        ROW_NUMBER() OVER (PARTITION BY s.group_id ORDER BY s.index) AS rn
+    FROM
+        student AS s
+),
+group_data AS (
+    SELECT
+        s.plan_id,
+        g.name AS group_name,
+        g.index AS group_id,
+        sub.name AS subject,
+        sub.index AS subject_id,
+        sch.hours_type_id,
+        COUNT(*) * 2 AS real_academic_hours,
+        disth.volume
+    FROM
+        group_ AS g
+    JOIN
+        ranked_students AS s ON s.group_id = g.index AND s.rn = 1
+    JOIN
+        group_schedule AS gsch ON g.index = gsch.group_id
+    JOIN
+        schedule AS sch ON sch.index = gsch.lesson_id
+    JOIN
+        subject AS sub ON sub.index = sch.subject_id
+    JOIN
+        room AS r ON r.index = sch.room_id
+    JOIN
+        distribution as d ON d.plan_id = s.plan_id
+            AND d.subject_id = sub.index
+            AND d.semestr_id = g.semestr_id
+    JOIN
+        distribution_hours as disth ON d.index = disth.distr_id
+            AND disth.hours_type_id = sch.hours_type_id
+    GROUP BY
+        s.plan_id, g.name, g.index, sch.hours_type_id, sub.name, sub.index, disth.volume
+)
+SELECT
+    plan_id,
+    group_name,
+    group_id,
+    subject,
+    subject_id,
+    hours_type_id,
+    real_academic_hours,
+    volume,
+    CASE
+        WHEN real_academic_hours = volume THEN TRUE
+        ELSE FALSE
+    END AS comparison_result
+FROM
+    group_data
+WHERE real_academic_hours != volume
+ORDER BY
+    group_name
+
+--Группы у которых хватает часов в предметах
+WITH ranked_students AS (
+    SELECT
+        s.*,
+        ROW_NUMBER() OVER (PARTITION BY s.group_id ORDER BY s.index) AS rn
+    FROM
+        student AS s
+),
+group_data AS (
+    SELECT
+        s.plan_id,
+        g.name AS group_name,
+        g.index AS group_id,
+        sub.name AS subject,
+        sub.index AS subject_id,
+        sch.hours_type_id,
+        COUNT(*) * 2 AS real_academic_hours,
+        disth.volume
+    FROM
+        group_ AS g
+    JOIN
+        ranked_students AS s ON s.group_id = g.index AND s.rn = 1
+    JOIN
+        group_schedule AS gsch ON g.index = gsch.group_id
+    JOIN
+        schedule AS sch ON sch.index = gsch.lesson_id
+    JOIN
+        subject AS sub ON sub.index = sch.subject_id
+    JOIN
+        room AS r ON r.index = sch.room_id
+    JOIN
+        distribution as d ON d.plan_id = s.plan_id
+            AND d.subject_id = sub.index
+            AND d.semestr_id = g.semestr_id
+    JOIN
+        distribution_hours as disth ON d.index = disth.distr_id
+            AND disth.hours_type_id = sch.hours_type_id
+    GROUP BY
+        s.plan_id, g.name, g.index, sch.hours_type_id, sub.name, sub.index, disth.volume
+)
+SELECT
+    plan_id,
+    group_name,
+    group_id,
+    subject,
+    subject_id,
+    hours_type_id,
+    real_academic_hours,
+    volume,
+    CASE
+        WHEN real_academic_hours = volume THEN TRUE
+        ELSE FALSE
+    END AS comparison_result
+FROM
+    group_data
+WHERE real_academic_hours >= volume
+ORDER BY
+    group_name
+
+--end new 2
+
+
+
+	SELECT * from schedule
+
 
 
 --Расписание для группы

@@ -23,25 +23,28 @@ DROP TABLE IF EXISTS variativity_part;
 
 CREATE TABLE discipline (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE subject (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    disc_id INTEGER,
-    FOREIGN KEY (disc_id) REFERENCES discipline(index)
+    name VARCHAR(100) NOT NULL,
+	disc_id INTEGER NOT NULL,
+    FOREIGN KEY (disc_id) REFERENCES discipline(index),
+	
+	CONSTRAINT unique_name_subject UNIQUE (name)
 );
 
 CREATE TABLE variativity_part (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL,
+	CONSTRAINT unique_name_varpart UNIQUE (name)
 );
 
 CREATE TABLE subject_varparts (
     index SERIAL PRIMARY KEY,
-    varpart_id INTEGER,
-    subject_id INTEGER,
+    varpart_id INTEGER NOT NULL,
+    subject_id INTEGER NOT NULL,
     FOREIGN KEY (subject_id) REFERENCES subject(index),
 	FOREIGN KEY (varpart_id) REFERENCES variativity_part(index)
 );
@@ -50,21 +53,26 @@ CREATE TABLE subject_varparts (
 
 CREATE TABLE semestr (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL,
+
+	CONSTRAINT unique_name_semestr UNIQUE (name)
+	
 );
 
 CREATE TABLE study_plan (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    varpart_id INTEGER,
-    FOREIGN KEY (varpart_id) REFERENCES variativity_part(index)
+    name VARCHAR(100) NOT NULL,
+    varpart_id INTEGER NOT NULL,
+    FOREIGN KEY (varpart_id) REFERENCES variativity_part(index),
+
+	CONSTRAINT unique_name_plan UNIQUE (name)
 );
 
 CREATE TABLE distribution (
     index SERIAL PRIMARY KEY,
-    plan_id INTEGER,
-    subject_id INTEGER,
-    semestr_id INTEGER,
+    plan_id INTEGER NOT NULL,
+    subject_id INTEGER NOT NULL,
+    semestr_id INTEGER NOT NULL,
     FOREIGN KEY (plan_id) REFERENCES study_plan(index),
     FOREIGN KEY (subject_id) REFERENCES subject(index),
     FOREIGN KEY (semestr_id) REFERENCES semestr(index)
@@ -72,83 +80,95 @@ CREATE TABLE distribution (
 
 CREATE TABLE hours_type (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL,
+
+	CONSTRAINT unique_name_hours_type UNIQUE (name)
 );
 
 CREATE TABLE distribution_hours (
     index SERIAL PRIMARY KEY,
-    distr_id INTEGER,
-    hours_type_id INTEGER,
-    volume INTEGER,
+    distr_id INTEGER NOT NULL,
+    hours_type_id INTEGER NOT NULL,
+    volume INTEGER CONSTRAINT positive CHECK (volume > 0),
     FOREIGN KEY (distr_id) REFERENCES distribution(index),
     FOREIGN KEY (hours_type_id) REFERENCES hours_type(index)
 );
 
 CREATE TABLE group_(
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL,
+	semestr_id INTEGER NOT NULL,
+	FOREIGN KEY (semestr_id) REFERENCES semestr(index),
+
+	CONSTRAINT unique_name_group UNIQUE (name)
 );
 
 CREATE TABLE student (
     index SERIAL PRIMARY KEY,
-    full_name VARCHAR(100),
-    plan_id INTEGER,
-    group_id INTEGER,
+    full_name VARCHAR(100) NOT NULL,
+    plan_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
     FOREIGN KEY (plan_id) REFERENCES study_plan(index),
     FOREIGN KEY (group_id) REFERENCES group_(index)
 );
 
 CREATE TABLE room (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL,
+
+	CONSTRAINT unique_name_room UNIQUE (name)
 );
 
 CREATE TABLE teacher (
     index SERIAL PRIMARY KEY,
-    full_name VARCHAR(100)
+    full_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE department (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL,
+
+	CONSTRAINT unique_name_department UNIQUE (name)
 );
 
 CREATE TABLE schedule (
     index SERIAL PRIMARY KEY,
     subject_id INTEGER,
-    time TIMESTAMP,
+    time TIMESTAMP NOT NULL,
+	hours_type_id INTEGER NOT NULL,
     room_id INTEGER,
     FOREIGN KEY (subject_id) REFERENCES subject(index),
+	FOREIGN KEY (hours_type_id) REFERENCES hours_type(index),
     FOREIGN KEY (room_id) REFERENCES room(index)
 );
 
 CREATE TABLE teacher_department (
     index SERIAL PRIMARY KEY,
-    teacher_id INTEGER,
-    department_id INTEGER,
+    teacher_id INTEGER NOT NULL,
+    department_id INTEGER NOT NULL,
     FOREIGN KEY (teacher_id) REFERENCES teacher(index),
     FOREIGN KEY (department_id) REFERENCES department(index)
 );
 
 CREATE TABLE department_discipline (
     index SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    discipline_id INTEGER,
+    name VARCHAR(100) NOT NULL,
+    discipline_id INTEGER NOT NULL,
     FOREIGN KEY (discipline_id) REFERENCES discipline(index)
 );
 
 CREATE TABLE teacher_schedule (
     index SERIAL PRIMARY KEY,
-    teacher_id INTEGER,
-    lesson_id INTEGER,
+    teacher_id INTEGER NOT NULL,
+    lesson_id INTEGER NOT NULL,
     FOREIGN KEY (teacher_id) REFERENCES teacher(index),
 	FOREIGN KEY (lesson_id) REFERENCES schedule(index)
 );
 
 CREATE TABLE group_schedule (
     index SERIAL PRIMARY KEY,
-    group_id INTEGER,
-    lesson_id INTEGER,
+    group_id INTEGER NOT NULL,
+    lesson_id INTEGER NOT NULL,
     FOREIGN KEY (group_id) REFERENCES group_(index),
 	FOREIGN KEY (lesson_id) REFERENCES schedule(index)
 );
@@ -160,9 +180,7 @@ VALUES
     ('Современное естествознание'),   --2
     ('Информатика'), --3
 	('Гуманитарный, социальный и экономический'); --4
-
-
-
+---
 INSERT INTO subject (name, disc_id)
 	SELECT 'Математический анализ I', discipline.index FROM discipline
 	WHERE discipline.name = 'Математический анализ'
@@ -228,7 +246,7 @@ INSERT INTO subject (name, disc_id)
 INSERT INTO variativity_part (name)
 VALUES
 	('Гуманитарный, социальный и экономический'); --1
-
+----
 INSERT INTO subject_varparts (varpart_id ,subject_id)
 	SELECT v.index AS varpart_id, s.index AS subject_id FROM variativity_part as v
 	JOIN subject AS s ON v.name = 'Гуманитарный, социальный и экономический' AND s.name = 'Социология'
@@ -241,8 +259,7 @@ INSERT INTO subject_varparts (varpart_id ,subject_id)
 	UNION ALL
 	SELECT v.index AS varpart_id, s.index AS subject_id FROM variativity_part as v
 	JOIN subject AS s ON v.name = 'Гуманитарный, социальный и экономический' AND s.name = 'Гумманитарные курсы по выбору'
-	
-SELECT * FROM subject_varparts	
+		
 	--(1, 8),
 	--(1, 9),
 	--(1, 10),
@@ -259,7 +276,6 @@ VALUES
 	('7 семестр'),
 	('8 семестр');
 
-SELECT * FROM semestr
 
 	
 INSERT INTO study_plan (name, varpart_id)
@@ -350,10 +366,10 @@ INSERT INTO distribution (plan_id, subject_id, semestr_id)
 	--('Межфакультетские курсы', 4), --10
 	--('Гумманитарные курсы по выбору', 4), --11
 
-SELECT p.name, s.name, d.index
-FROM study_plan as p
-JOIN distribution as d ON d.plan_id = p.index
-JOIN subject as s ON d.subject_id = s.index
+--SELECT p.name, s.name, d.index
+--FROM study_plan as p
+--JOIN distribution as d ON d.plan_id = p.index
+--JOIN subject as s ON d.subject_id = s.index
 
 
 
@@ -835,21 +851,21 @@ INSERT INTO distribution_hours (distr_id, hours_type_id, volume)
 	WHERE (h.name='Самостоятельная работа студентов' AND p.name='ВМК ПМИ' AND subj.name='Гумманитарные курсы по выбору' AND sem.name = '2 семестр')
 
 
-INSERT INTO group_ (name)
+INSERT INTO group_ (name, semestr_id)
 VALUES
-	('107'),
-	('108'),
+	('107', (SELECT index FROM semestr WHERE name = '1 семестр')),
+	('108', (SELECT index FROM semestr WHERE name = '1 семестр')),
 
-	('207'),
-	('208'),
+	('207', (SELECT index FROM semestr WHERE name = '2 семестр')),
+	('208', (SELECT index FROM semestr WHERE name = '2 семестр')),
 
-	('307'),
-	('308'),
+	('307', (SELECT index FROM semestr WHERE name = '3 семестр')),
+	('308', (SELECT index FROM semestr WHERE name = '3 семестр')),
 
-	('407'),
-	('408')
+	('407', (SELECT index FROM semestr WHERE name = '4 семестр')),
+	('408', (SELECT index FROM semestr WHERE name = '4 семестр'))
 
-SELECT * FROM group_
+--SELECT * FROM group_
 -- Вставка данных для группы 107
 INSERT INTO student (full_name, plan_id, group_id)
 VALUES
@@ -989,18 +1005,28 @@ VALUES
     ('Кафедра гуманитарных наук');
 
 
-INSERT INTO schedule (subject_id, time, room_id)
+INSERT INTO schedule (subject_id, time, room_id, hours_type_id)
 VALUES
-     ((SELECT index FROM subject WHERE name = 'Математический анализ I'), '01-10-2023 08:00:00', (SELECT index FROM room WHERE name = 'Аудитория 303')),
-    ((SELECT index FROM subject WHERE name = 'Математический анализ II'), '01-10-2023 09:00:00', (SELECT index FROM room WHERE name = 'Аудитория 504')),
-    ((SELECT index FROM subject WHERE name = 'Математический анализ III'), '01-10-2023 10:00:00', (SELECT index FROM room WHERE name = 'Аудитория 701')),
-    ((SELECT index FROM subject WHERE name = 'Электродинамика'), '01-10-2023 11:00:00', (SELECT index FROM room WHERE name = 'Аудитория 304')),
-    ((SELECT index FROM subject WHERE name = 'Классическая механика'), '01-10-2023 12:00:00', (SELECT index FROM room WHERE name = 'Аудитория 505')),
-    ((SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'), '01-10-2023 13:00:00', (SELECT index FROM room WHERE name = 'Аудитория 702')),
-    ((SELECT index FROM subject WHERE name = 'Операционные системы'), '01-10-2023 14:00:00', (SELECT index FROM room WHERE name = 'Аудитория 305')),
-    ((SELECT index FROM subject WHERE name = 'Социология'), '01-10-2023 15:00:00', (SELECT index FROM room WHERE name = 'Аудитория 506')),
-    ((SELECT index FROM subject WHERE name = 'Лингвистическая культура'), '01-10-2023 16:00:00', (SELECT index FROM room WHERE name = 'Аудитория 703')),
-    ((SELECT index FROM subject WHERE name = 'Межфакультетские курсы'), '01-10-2023 17:00:00', (SELECT index FROM room WHERE name = 'Аудитория 306'));
+    ((SELECT index FROM subject WHERE name = 'Математический анализ I'), '01-10-2023 08:00:00', (SELECT index FROM room WHERE name = 'Аудитория 303'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Математический анализ I'), '01-10-2023 08:00:00', (SELECT index FROM room WHERE name = 'Аудитория 303'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Математический анализ II'), '01-10-2023 09:00:00', (SELECT index FROM room WHERE name = 'Аудитория 504'),(SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Математический анализ II'), '01-10-2023 09:00:00', (SELECT index FROM room WHERE name = 'Аудитория 504'),(SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Математический анализ III'), '01-10-2023 10:00:00', (SELECT index FROM room WHERE name = 'Аудитория 701'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Математический анализ III'), '01-10-2023 10:00:00', (SELECT index FROM room WHERE name = 'Аудитория 701'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Электродинамика'), '01-10-2023 11:00:00', (SELECT index FROM room WHERE name = 'Аудитория 304'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Электродинамика'), '01-10-2023 11:00:00', (SELECT index FROM room WHERE name = 'Аудитория 304'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Классическая механика'), '01-10-2023 12:00:00', (SELECT index FROM room WHERE name = 'Аудитория 505'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Классическая механика'), '01-10-2023 12:00:00', (SELECT index FROM room WHERE name = 'Аудитория 505'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'), '01-10-2023 13:00:00', (SELECT index FROM room WHERE name = 'Аудитория 702'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'), '01-10-2023 13:00:00', (SELECT index FROM room WHERE name = 'Аудитория 702'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Операционные системы'), '01-10-2023 14:00:00', (SELECT index FROM room WHERE name = 'Аудитория 305'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Операционные системы'), '01-10-2023 14:00:00', (SELECT index FROM room WHERE name = 'Аудитория 305'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Социология'), '01-10-2023 15:00:00', (SELECT index FROM room WHERE name = 'Аудитория 506'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Социология'), '01-10-2023 15:00:00', (SELECT index FROM room WHERE name = 'Аудитория 506'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Лингвистическая культура'), '01-10-2023 16:00:00', (SELECT index FROM room WHERE name = 'Аудитория 703'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Лингвистическая культура'), '01-10-2023 16:00:00', (SELECT index FROM room WHERE name = 'Аудитория 703'), (SELECT index FROM hours_type WHERE name ='Лекции')),
+    ((SELECT index FROM subject WHERE name = 'Межфакультетские курсы'), '01-10-2023 17:00:00', (SELECT index FROM room WHERE name = 'Аудитория 306'), (SELECT index FROM hours_type WHERE name ='Семинары')),
+	((SELECT index FROM subject WHERE name = 'Межфакультетские курсы'), '01-10-2023 17:00:00', (SELECT index FROM room WHERE name = 'Аудитория 306'), (SELECT index FROM hours_type WHERE name ='Лекции'));
 
 INSERT INTO teacher_department (teacher_id, department_id)
 VALUES
@@ -1028,42 +1054,111 @@ VALUES
 
 INSERT INTO teacher_schedule (teacher_id, lesson_id)
 VALUES
-    ((SELECT index FROM teacher WHERE full_name = 'Иванов Иван Иванович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Петров Петр Петрович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Сидоров Сидор Сидорович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Кузнецова Анна Сергеевна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Смирнова Елена Владимировна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Попова Мария Александровна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Васильев Дмитрий Алексеевич'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Соколова Ольга Ивановна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Михайлов Андрей Викторович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура'))),
-    ((SELECT index FROM teacher WHERE full_name = 'Федорова Наталья Сергеевна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Межфакультетские курсы')));
+    ((SELECT index FROM teacher WHERE full_name = 'Иванов Иван Иванович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Петров Петр Петрович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Сидоров Сидор Сидорович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Кузнецова Анна Сергеевна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Смирнова Елена Владимировна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Попова Мария Александровна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Васильев Дмитрий Алексеевич'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Соколова Ольга Ивановна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Михайлов Андрей Викторович'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM teacher WHERE full_name = 'Федорова Наталья Сергеевна'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Межфакультетские курсы') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') ));
 
+
+
+
+--begin transaction;
 -- Вставка данных для расписания занятий для групп
+--update subject
+--set name = 'Математический анализ I';
 INSERT INTO group_schedule (group_id, lesson_id)
 VALUES
-    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I'))),
-    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II'))),
-    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III'))),
-    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I'))),
-    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II'))),
-    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III'))),
-    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика'))),
-    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика'))),
-    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика'))),
-    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика'))),
-    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'))),
-    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы'))),
-    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ'))),
-    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы'))),
-    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология'))),
-    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура'))),
-    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология'))),
-    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура')));
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') )),
+ ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '107'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ II') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '108'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ III') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '207'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Электродинамика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '208'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Классическая механика') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '307'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Архитектура ЭВМ') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '308'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Операционные системы') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '407'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Социология') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') )),
+    ((SELECT index FROM group_ WHERE name = '408'), (SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Лингвистическая культура') 
+		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') ));
 
 
-
-SELECT * FROM discipline
+--rollback
 
 --Распределение предметов
 SELECT d.name, s.name, s.index

@@ -148,60 +148,34 @@ ORDER BY group_name
 
 
 
---new 1
 
 
-INSERT INTO schedule (subject_id, time, room_id, hours_type_id)
-VALUES
-    (
-		(SELECT index FROM subject WHERE name = 'Математический анализ I'), 
-		'01-10-2023 12:15:00', (SELECT index FROM room WHERE name = 'Аудитория 303'), 
-		(SELECT index FROM hours_type WHERE name ='Семинары')
-	)
+--Процесс составления расписания (Бизнес процесс)) 
+--start
 
-INSERT INTO group_schedule (group_id, lesson_id)
-VALUES
-    (
-		(SELECT index FROM group_ WHERE name = '107'), 
-		(SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
-			AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') AND time = '01-10-2023 12:15:00')
-	)
-	    
-INSERT INTO teacher_schedule (teacher_id, lesson_id)
-VALUES
-    (
-		(SELECT index FROM teacher WHERE full_name = 'Иванов Иван Иванович'), 
-		(SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
-			AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') AND time = '01-10-2023 12:15:00' )
-	)
-    
-	
-
-
-
-
---end new1
-
-
--- new 2
 
 --searching free time for groups
-SELECT TO_CHAR(sch.time, 'DD/MM/YYYY HH24:MI:SS')
+SELECT  g.name as group,
+		TO_CHAR(sch.time, 'DD/MM/YYYY HH24:MI:SS')
 FROM group_schedule as gs
 JOIN group_ as g ON gs.group_id = g.index
 JOIN schedule AS sch ON gs.lesson_id = sch.index
-WHERE g.name = '107' --AND TO_CHAR(sch.time, 'DD/MM/YYYY') = '10/01/2023'
+WHERE g.name = '107' AND TO_CHAR(sch.time, 'DD/MM/YYYY') = '01/10/2023'
+ORDER BY g.name
 
 
 INSERT INTO schedule (subject_id, time, room_id, hours_type_id)
 VALUES
     (
 		(SELECT index FROM subject WHERE name = 'Математический анализ I'), 
-		'01-10-2023 12:15:00', 
+		--'01-10-2023 12:15:00',
+		TO_TIMESTAMP('01-10-2023 12:15:00', 'DD-MM-YYYY HH24:MI:SS'),
 		NULL, --room
 		(SELECT index FROM hours_type WHERE name ='Семинары')
 	)
 
+
+	--Назначаем группам пару
 INSERT INTO group_schedule (group_id, lesson_id)
 VALUES
     (
@@ -212,6 +186,7 @@ VALUES
 
 --...
 
+	--Назначаем преподавателям пару пару
 INSERT INTO teacher_schedule (teacher_id, lesson_id)
 VALUES
     (
@@ -225,7 +200,7 @@ VALUES
 --searching auditory for lesson
 
 --Количество учеников на занятии
-SELECT 	l.index,
+SELECT  l.index,
 		l.time,
 		SUM(group_volume.volume)
 FROM schedule as l
@@ -233,16 +208,19 @@ JOIN group_schedule as gsch ON gsch.lesson_id = l.index
 JOIN 
 	(
 		SELECT 	g.index,
+				g.name,
 				COUNT(*) as volume
 		FROM group_ as g
 		JOIN student as s ON s.group_id = g.index
 		GROUP BY g.index
 		ORDER BY g.index
 	) as group_volume ON group_volume.index = gsch.group_id
+WHERE l.room_id IS NULL
 GROUP BY l.index, l.time
 
+SELECT * from schedule
 
---Свободные комнаты
+--Свободные комнаты для !одного предмета
 WITH busy_room AS (
 	SELECT 	r.index,
 			r.name
@@ -253,10 +231,11 @@ WITH busy_room AS (
 SELECT 	r.name, r.index
 FROM room as r
 WHERE r.index NOT IN (SELECT index FROM busy_room)
+	AND r.volume >= 100
 
 
 UPDATE schedule s
-SET room_id = 1
+SET room_id = 10
 WHERE s.subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I')
 	AND s.time = '01-10-2023 12:15:00'
 	AND s.hours_type_id = (SELECT index FROM hours_type WHERE name ='Семинары')
@@ -382,11 +361,12 @@ WHERE real_academic_hours >= volume
 ORDER BY
     group_name
 
---end new 2
+
+--Процесс составления расписания (Бизнес процесс)) 
+--end
 
 
-
-	SELECT * from schedule
+SELECT * from schedule
 
 
 
@@ -419,7 +399,7 @@ SELECT g.name as group_number,
 FROM group_ as g
 JOIN student as s ON s.group_id = g.index
 GROUP BY group_number
-ORDER BY group_number
+ORDER BY group_number;
 
 --Студенты
 SELECT * FROM student
@@ -501,7 +481,7 @@ WHERE student.index = us.index;
 
 --При прохождении курсовой программы информация меняется следующим образом
 --В расписании зашиты id групп поэтому необходимо перемещать студентов из одной группы в другую
---4XX -> выпускаются те информация удаляется \ убираются либо в магистерскую группы с соотвественным учебным планом либо 
+--4XX -> выпускаются те информация удаляется \ убираются либо в магистерскую группы с соотвественным учебным планом
 --3XX -> 4XX
 --2XX -> 3XX
 --1XX -> 2XX

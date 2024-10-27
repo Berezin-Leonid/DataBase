@@ -222,7 +222,7 @@ INSERT INTO subject (name, disc_id)
 	WHERE discipline.name = 'Гуманитарный, социальный и экономический'
 	UNION ALL
 	SELECT 'Гумманитарные курсы по выбору', discipline.index FROM discipline
-	WHERE discipline.name = 'Гуманитарный, социальный и экономический'
+	WHERE discipline.name = 'Гуманитарный, социальный и экономический';
 	
     --('Математический анализ I', 1), --1
 	--('Математический анализ II', 1), --2
@@ -258,12 +258,8 @@ INSERT INTO subject_varparts (varpart_id ,subject_id)
 	JOIN subject AS s ON v.name = 'Гуманитарный, социальный и экономический' AND s.name = 'Межфакультетские курсы'
 	UNION ALL
 	SELECT v.index AS varpart_id, s.index AS subject_id FROM variativity_part as v
-	JOIN subject AS s ON v.name = 'Гуманитарный, социальный и экономический' AND s.name = 'Гумманитарные курсы по выбору'
+	JOIN subject AS s ON v.name = 'Гуманитарный, социальный и экономический' AND s.name = 'Гумманитарные курсы по выбору';
 		
-	--(1, 8),
-	--(1, 9),
-	--(1, 10),
-	--(1, 11);
 
 INSERT INTO semestr (name)
 VALUES
@@ -358,19 +354,7 @@ INSERT INTO distribution (plan_id, subject_id, semestr_id)
 	SELECT p.index as pl_id, sub.index as sub_i, sem.index as sem_i FROM study_plan as p
 	JOIN subject as sub ON sub.name = 'Гумманитарные курсы по выбору'
 	JOIN semestr AS sem ON sem.name = '2 семестр'
-	WHERE p.name = 'ВМК ПМИ'
-
-
-	--('Социология', 4), --8
-	--('Лингвистическая культура', 4), --9
-	--('Межфакультетские курсы', 4), --10
-	--('Гумманитарные курсы по выбору', 4), --11
-
---SELECT p.name, s.name, d.index
---FROM study_plan as p
---JOIN distribution as d ON d.plan_id = p.index
---JOIN subject as s ON d.subject_id = s.index
-
+	WHERE p.name = 'ВМК ПМИ';
 
 
 INSERT INTO hours_type (name)
@@ -848,7 +832,7 @@ INSERT INTO distribution_hours (distr_id, hours_type_id, volume)
 	JOIN study_plan as p ON p.index = d.plan_id
 	JOIN subject as subj ON subj.index = d.subject_id
 	JOIN semestr as sem ON sem.index = d.semestr_id
-	WHERE (h.name='Самостоятельная работа студентов' AND p.name='ВМК ПМИ' AND subj.name='Гумманитарные курсы по выбору' AND sem.name = '2 семестр')
+	WHERE (h.name='Самостоятельная работа студентов' AND p.name='ВМК ПМИ' AND subj.name='Гумманитарные курсы по выбору' AND sem.name = '2 семестр');
 
 
 INSERT INTO group_ (name, semestr_id)
@@ -863,7 +847,7 @@ VALUES
 	('308', (SELECT index FROM semestr WHERE name = '3 семестр')),
 
 	('407', (SELECT index FROM semestr WHERE name = '4 семестр')),
-	('408', (SELECT index FROM semestr WHERE name = '4 семестр'))
+	('408', (SELECT index FROM semestr WHERE name = '4 семестр'));
 
 --SELECT * FROM group_
 -- Вставка данных для группы 107
@@ -1158,51 +1142,3 @@ VALUES
 		AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Лекции') ));
 
 
---rollback
-
---Распределение предметов
-SELECT d.name, s.name, s.index
-FROM discipline as d
-JOIN subject as s ON s.disc_id = d.index
-WHERE d.name = 'Математический анализ'
-
---Учебные планы
-SELECT * FROM study_plan
-
---Типы часов
-SELECT * FROM hours_type
-
---Распределение студентов по группам
-SELECT g.name, s.full_name, s.index
-FROM group_ as g
-JOIN student as s ON s.group_id = g.index
-
-
-
---Распределение преподавателей по кафедрам
-SELECT d.name, t.full_name, t.index
-FROM department as d
-JOIN teacher_department as dt ON dt.department_id = d.index
-JOIN teacher as t ON t.index = dt.teacher_id
---WHERE 
---AND
-
-
---Расписание для групп
-SELECT g.name, s.name, TO_CHAR(sc.time, 'DD/MM/YYYY HH24:MI:SS')
-FROM group_ as g
-JOIN group_schedule as gs ON gs.group_id = g.index
-JOIN schedule as sc ON gs.lesson_id = sc.index
-JOIN subject as s ON s.index = sc.subject_id
---WHERE sc.time::DATE = '01-10-2023'
---AND sc.time::TIME > '14:00:00'
---AND g.name='407'
-
-
-
-
-TRUNCATE TABLE discipline CASCADE;
-TRUNCATE TABLE subject CASCADE;
-TRUNCATE TABLE distribution CASCADE;
-TRUNCATE TABLE subject CASCADE;
-TRUNCATE TABLE distribution_hours CASCADE;

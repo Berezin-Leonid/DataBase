@@ -8,7 +8,8 @@ BEGIN;
 	    (
 			(SELECT index FROM group_ WHERE name = '207'), 
 			(SELECT index FROM schedule WHERE subject_id = (SELECT index FROM subject WHERE name = 'Математический анализ I') 
-				AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') AND time = '01-10-2023 18:15:00')
+				AND hours_type_id = (SELECT index FROM hours_type WHERE name = 'Семинары') 
+				AND TO_CHAR(time, 'DD/MM/YYYY HH24:MI:SS') = '01/10/2023 18:15:00')
 		)
 
 --Добавляем еще кучу групп 

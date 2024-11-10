@@ -57,6 +57,28 @@ JOIN room as r ON r.index = sch.room_id
 WHERE g.name = '107'
 
 
+--Расписание для преподавателей
+SELECT t.full_name as teacher, TO_CHAR(sch.time, 'DD/MM/YYYY HH24:MI:SS') as time, sub.name as subject, r.name as room
+FROM teacher as t
+JOIN teacher_schedule as ts ON t.index= ts.teacher_id
+JOIN schedule as sch ON sch.index = ts.lesson_id
+JOIN subject as sub ON sub.index = sch.subject_id
+JOIN room as r ON r.index = sch.room_id
+WHERE t.full_name = 'Иванов Иван Иванович'
+
+
+SELECT d.name, t.full_name, t.index
+FROM department as d
+JOIN teacher_department as dt ON dt.department_id = d.index
+JOIN teacher as t ON t.index = dt.teacher_id
+
+
+
+
+
+
+
+
 --Реальное число часов в предмете
 SELECT g.name as group_name, sub.name as subject, Count(*) * 2 as real_academic_hourse
 FROM group_ as g
@@ -150,7 +172,7 @@ ORDER BY group_name
 
 
 
---Процесс составления расписания (Бизнес процесс)) 
+--Процесс составления расписания (Бизнес процесс) 
 --start
 
 
@@ -168,7 +190,6 @@ INSERT INTO schedule (subject_id, time, room_id, hours_type_id)
 VALUES
     (
 		(SELECT index FROM subject WHERE name = 'Математический анализ I'), 
-		--'01-10-2023 12:15:00',
 		TO_TIMESTAMP('01-10-2023 12:15:00', 'DD-MM-YYYY HH24:MI:SS'),
 		NULL, --room
 		(SELECT index FROM hours_type WHERE name ='Семинары')

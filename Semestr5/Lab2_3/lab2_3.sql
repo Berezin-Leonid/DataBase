@@ -177,13 +177,12 @@ ORDER BY group_name
 
 
 --searching free time for groups
-SELECT  g.name as group,
-		TO_CHAR(sch.time, 'DD/MM/YYYY HH24:MI:SS')
+SELECT DISTINCT TO_CHAR(sch.time, 'DD/MM/YYYY HH24:MI:SS') as busy_time
 FROM group_schedule as gs
 JOIN group_ as g ON gs.group_id = g.index
 JOIN schedule AS sch ON gs.lesson_id = sch.index
-WHERE g.name = '107' AND TO_CHAR(sch.time, 'DD/MM/YYYY') = '01/10/2023'
-ORDER BY g.name
+WHERE g.name = '107' OR g.name = '108'--AND TO_CHAR(sch.time, 'DD/MM/YYYY') = '01/10/2023'
+ORDER BY busy_time
 
 
 INSERT INTO schedule (subject_id, time, room_id, hours_type_id)
@@ -207,7 +206,7 @@ VALUES
 
 --...
 
-	--Назначаем преподавателям пару пару
+	--Назначаем преподавателям пару
 INSERT INTO teacher_schedule (teacher_id, lesson_id)
 VALUES
     (
@@ -241,7 +240,7 @@ GROUP BY l.index, l.time
 
 SELECT * from schedule
 
---Свободные комнаты для !одного предмета
+--Свободные комнаты для !одного предмета по времени
 WITH busy_room AS (
 	SELECT 	r.index,
 			r.name
@@ -292,8 +291,6 @@ group_data AS (
         schedule AS sch ON sch.index = gsch.lesson_id
     JOIN
         subject AS sub ON sub.index = sch.subject_id
-    JOIN
-        room AS r ON r.index = sch.room_id
     JOIN
         distribution as d ON d.plan_id = s.plan_id
             AND d.subject_id = sub.index

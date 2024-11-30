@@ -38,8 +38,6 @@ COPY sales_facts (fact_id, product_id, time_id, store_id, quantity, user_id, tot
 FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data/sales_facts.csv' DELIMITER ',' CSV HEADER;
 
 
-SELECT * 
-FROM sa
 
 
 --=============--

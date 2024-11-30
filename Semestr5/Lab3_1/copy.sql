@@ -32,23 +32,10 @@ WITH (
 COPY dim_time (time_id,month_code,  month, year)
 FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data/dim_time.csv' DELIMITER ',' CSV HEADER;
 
-DROP TABLE IF EXISTS sales_facts;
-CREATE TABLE sales_facts (
-    fact_id SERIAL PRIMARY KEY,
-    product_id INT NOT NULL,
-    time_id INT NOT NULL,
-    store_id INT NOT NULL,
-    quantity INT NOT NULL,
-	user_id INT NOT NULL,
-    total_amount DECIMAL(10, 2) NOT NULL,
-	
-    FOREIGN KEY (user_id) REFERENCES dim_users(user_id),
-    FOREIGN KEY (product_id) REFERENCES dim_products(product_id),
-    FOREIGN KEY (time_id) REFERENCES dim_time(time_id),
-    FOREIGN KEY (store_id) REFERENCES dim_stores(store_id)
-);
+
+
 COPY sales_facts (fact_id, product_id, time_id, store_id, quantity, user_id, total_amount)
-FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/expdata/sales_facts.csv' DELIMITER ',' CSV HEADER;
+FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data/sales_facts.csv' DELIMITER ',' CSV HEADER;
 
 
 SELECT * 

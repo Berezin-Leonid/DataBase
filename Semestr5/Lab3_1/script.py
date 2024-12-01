@@ -11,7 +11,7 @@ fake = Faker()
 tqdm.pandas()
 # Шаг 1: Загрузить данные из CSV для dim_locations
 def get_locations():
-    return pd.read_csv('data/city_new.csv', delimiter=';')
+    return pd.read_csv('data/city.csv', delimiter=',')
 def get_users(num=1_000_000):
     # Шаг 2: Создание таблицы dim_users
     file_path = Path(path + 'dim_users.csv')
@@ -50,7 +50,6 @@ def get_stores(num=1_000_000):
                 "city": city["city"],
                 "latitude": city["geo_lat"],
                 "longitude": city["geo_lon"],
-                "timezone": city["timezone"],
             }
             stores.append(store)
 
@@ -68,7 +67,7 @@ def get_products(num=1_000_000):
         print("Генерируем данные")
         products = []
         categories = ["Electronics", "Clothing", "Groceries", "Books", "Toys"]
-        for i in tqdm(range(1_000_000), desc="products"):  # Генерируем 200 продуктов
+        for i in tqdm(range(num), desc="products"):  # Генерируем 200 продуктов
             product = {
                 "product_id": i + 1,
                 "name": fake.word(),
@@ -175,11 +174,13 @@ def batched_get_facts(batch_size=10_000, num=100_000_000, dim_num=1_000_000, fil
     else: 
         print(f"Данные уже сгенерированы")
 
-#dim_locations = get_locations()
-#get_stores()
-dim_time = get_time()
 dim_locations = get_locations()
-data = batched_get_facts(num=100_000_000, batch_size=10_000)
+get_stores(num=10_000)
+get_users(num=10_000)
+get_products(num=10_000)
+dim_time = get_time()
+
+data = batched_get_facts(num=100_000, batch_size=10_000, dim_num=10_000)
 
 
 

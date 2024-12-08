@@ -6,7 +6,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 # Инициализируем Faker для генерации случайных данных
-path = 'data/'
+path = 'little_data/'
 fake = Faker()
 tqdm.pandas()
 # Шаг 1: Загрузить данные из CSV для dim_locations

@@ -27,28 +27,7 @@ ORDER BY
 
 
 --========
-EXPLAIN
-SELECT 
-    t.month, 
-    t.year,
-    SUM(s.total_amount) AS total_revenue,
-    SUM(s.quantity) AS total_sales
-FROM 
-    sales_facts s
-JOIN 
-    dim_time t ON s.time_id = t.time_id
-JOIN dim_stores ds ON s.store_id = ds.store_id
-WHERE 
-    t.year = 2024
-    AND ds.country = 'Россия'
-GROUP BY 
-    t.month, t.year
-ORDER BY 
-    t.year, t.month;
---========
 
-
-SELECT * FROM pg_indexes;
 
 
 EXPLAIN
@@ -67,6 +46,10 @@ EXPLAIN
 SELECT * FROM sales_facts as sf
 WHERE sf.product_id = 4
 ORDER BY time_id
+
+
+
+
 	
 
 SET enable_indexscan = ON;

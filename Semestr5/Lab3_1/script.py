@@ -6,7 +6,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 # Инициализируем Faker для генерации случайных данных
-path = 'little_data/'
+path = 'data/'
 fake = Faker()
 tqdm.pandas()
 # Шаг 1: Загрузить данные из CSV для dim_locations
@@ -97,7 +97,7 @@ def get_time():
         "January", "February", "March", "April", "May", "June", 
         "July", "August", "September", "October", "November", "December"]
         for year in tqdm(range(start_year, end_year + 1), desc=f"Year"):
-            for month in tqdm(range(1, 13)):  # Месяцы от 1 до 12
+            for month in range(1, 13):  # Месяцы от 1 до 12
                 month_code = f"{month:02d}"  # Делаем месяц в формате "01", "02" и т.д.
                 month_name = month_names[month - 1]  # Название месяца
                 time_data.append({
@@ -134,6 +134,64 @@ def get_facts(num=100_000_000, dim_num=1_000_000):
 
         sales_facts = pd.DataFrame(sales)
         sales_facts.to_csv('sales_facts.csv', index=False)
+
+
+
+
+
+
+
+def batched_get_stores(batch_size=10_000, num=1_000_000):
+    file_path = Path(path + 'dim_stores.csv')
+
+    if not file_path.exists():
+        print("Генерируем данные")
+
+        # Открываем файл в режиме записи
+        with open(file_path, 'w', encoding='utf-8') as f:
+            # Записываем заголовки столбцов
+            f.write("store_id,name,country,region,city,latitude,longitude\n")
+            f.flush()
+
+            for batch_start in tqdm(range(0, num, batch_size), desc="stores"):
+                stores = []
+                batch_end = min(batch_start + batch_size, num)
+                
+                for i in range(batch_start, batch_end):
+                    city = dim_locations.sample(n=1).iloc[0]
+                    store = {
+                        "store_id": i + 1,
+                        "name": fake.company(),
+                        "country": city["country"],
+                        "region": city["region"],
+                        "city": city["city"],
+                        "latitude": city["geo_lat"],
+                        "longitude": city["geo_lon"],
+                    }
+                    stores.append(store)
+
+                # Преобразуем батч в DataFrame и записываем в файл
+                dim_stores_batch = pd.DataFrame(stores)
+                dim_stores_batch.to_csv(f, header=False, index=False, mode='a', encoding='utf-8')
+
+    else:
+        print("Данные уже существуют, загружаем")
+        dim_stores = pd.read_csv(file_path)
+        return dim_stores
+
+    # Читаем данные после завершения генерации
+    dim_stores = pd.read_csv(file_path)
+    return dim_stores
+
+
+
+
+
+
+
+
+
+
 
 def batched_get_facts(batch_size=10_000, num=100_000_000, dim_num=1_000_000, file_path='sales_facts.csv'):
     file_path = Path(path + 'sales_facts.csv')
@@ -174,13 +232,16 @@ def batched_get_facts(batch_size=10_000, num=100_000_000, dim_num=1_000_000, fil
     else: 
         print(f"Данные уже сгенерированы")
 
+dim_num = 1_000_000
+fact_num = 100_000_000
+
 dim_locations = get_locations()
-get_stores(num=10_000)
-get_users(num=10_000)
-get_products(num=10_000)
+batched_get_stores(batch_size=5_000, num=dim_num)
+get_users(num=dim_num)
+get_products(num=dim_num)
 dim_time = get_time()
 
-data = batched_get_facts(num=100_000, batch_size=10_000, dim_num=10_000)
+batched_get_facts(num=fact_num, batch_size=10_000, dim_num=dim_num)
 
 
 

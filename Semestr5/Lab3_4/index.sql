@@ -16,6 +16,20 @@ CREATE INDEX idx_dim_products_category_name_order
 ON dim_products (category, name);
 
 
+SELECT 
+    p.category, 
+    SUM(s.total_amount) AS total_sales, 
+    COUNT(s.fact_id) AS total_transactions
+FROM 
+    sales_facts s
+JOIN 
+    dim_products p ON s.product_id = p.product_id
+GROUP BY 
+    p.category
+ORDER BY 
+    total_sales DESC;
+
+
 
 
 SELECT * FROM dim_stores

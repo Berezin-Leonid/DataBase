@@ -20,7 +20,7 @@ CREATE TABLE dim_users (
 -- Таблица измерений: Магазины
 CREATE TABLE dim_stores (
     store_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100),
 	country VARCHAR(50),
 	region VARCHAR (50),
 	city VARCHAR(50),

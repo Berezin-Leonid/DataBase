@@ -11,6 +11,22 @@ ON dim_stores (country, region, city);
 CREATE INDEX idx_dim_stores_name_fulltext
 ON dim_stores USING GIN (to_tsvector('english', name));
 
+
+DROP INDEX IF EXISTS idx_contact_info_phon_fulltext;
+CREATE INDEX idx_contact_info_phone_fulltext ON dim_stores
+USING gin (to_tsvector('english', coalesce(contact_info->>'phone', '')));
+
+DROP INDEX IF EXISTS idx_contact_info_email_fulltext;
+-- Индекс для поиска по email
+CREATE INDEX idx_contact_info_email_fulltext ON dim_stores
+USING gin (to_tsvector('english', coalesce(contact_info->>'email', '')));
+
+DROP INDEX IF EXISTS idx_contact_info_website_fulltext;
+-- Индекс для поиска по веб-сайту
+CREATE INDEX idx_contact_info_website_fulltext ON dim_stores
+USING gin (to_tsvector('english', coalesce(contact_info->>'website', '')));
+
+
 --Таблица продуктов
 CREATE INDEX idx_dim_products_category_name_order
 ON dim_products (category, name);
@@ -33,5 +49,12 @@ ORDER BY
 
 
 SELECT * FROM dim_stores
-WHERE to_tsvector('english', name) @@ to_tsquery('english', 'Carr');
+WHERE to_tsvector('english', name) @@ to_tsquery('english', 'Inc');
 
+
+SELECT * FROM dim_stores
+WHERE to_tsvector('english', contact_info::text) @@ to_tsquery('english', 'jackson');
+
+
+SELECT contact_info::text FROM dim_stores
+LIMIT 1;

@@ -7,7 +7,6 @@ DROP TABLE IF EXISTS dim_locations;
 
 
 
-
 ----------
 -- Таблица измерений: Пользователи
 CREATE TABLE dim_users (
@@ -25,7 +24,8 @@ CREATE TABLE dim_stores (
 	region VARCHAR (50),
 	city VARCHAR(50),
 	geo_lat DECIMAL(9, 6),
-	geo_lon DECIMAL(9, 6)
+	geo_lon DECIMAL(9, 6),
+	contact_info JSONB -- new
 );
 
 -- Таблица измерений: Продукты

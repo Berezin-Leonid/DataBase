@@ -1,11 +1,11 @@
 
 COPY dim_users (user_id, name, age, gender)
-FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/little_data/dim_users.csv' DELIMITER ',' CSV HEADER;
+FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data_new/dim_users.csv' DELIMITER ',' CSV HEADER;
 
 --SELECT * from dim_users WHERE age = 19
 
-COPY dim_stores (store_id, name, country, region, city, geo_lat, geo_lon)
-FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/little_data/dim_stores.csv'
+COPY dim_stores (store_id, name, country, region, city, geo_lat, geo_lon, contact_info)
+FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data_new/dim_stores.csv'
 WITH (
     FORMAT csv,
     HEADER true,
@@ -18,7 +18,7 @@ WITH (
 
 
 COPY dim_products (product_id, name, category, price)
-FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/little_data/dim_products.csv' 
+FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data_new/dim_products.csv' 
 WITH (
     FORMAT csv,
     HEADER true,
@@ -30,12 +30,12 @@ WITH (
 
 
 COPY dim_time (time_id,month_code,  month, year)
-FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/little_data/dim_time.csv' DELIMITER ',' CSV HEADER;
+FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data_new/dim_time.csv' DELIMITER ',' CSV HEADER;
 
 
 
 COPY sales_facts (fact_id, product_id, time_id, store_id, quantity, user_id, total_amount)
-FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/little_data/sales_facts.csv' DELIMITER ',' CSV HEADER;
+FROM '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data_new/sales_facts.csv' DELIMITER ',' CSV HEADER;
 
 
 
@@ -64,7 +64,7 @@ DECLARE
     file_path TEXT;
 BEGIN
 	PERFORM set_config('session_replication_role', 'replica', true);
-    FOR i IN 14..100 LOOP
+    FOR i IN 1..100 LOOP
         BEGIN
 			file_path := '/Users/leonidberezin/Desktop/DataBase/Semestr5/Lab3_1/data_chunk/chunk_' || i || '.csv';
             RAISE NOTICE 'Загрузка данных из файла: %', file_path;

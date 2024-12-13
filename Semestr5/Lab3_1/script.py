@@ -4,9 +4,10 @@ from faker import Faker
 from datetime import datetime, timedelta
 from tqdm import tqdm
 from pathlib import Path
+import json
 
 # Инициализируем Faker для генерации случайных данных
-path = 'data/'
+path = 'data_new/'
 fake = Faker()
 tqdm.pandas()
 # Шаг 1: Загрузить данные из CSV для dim_locations
@@ -40,8 +41,10 @@ def get_stores(num=1_000_000):
     file_path = Path(path + 'dim_stores.csv')
     if not file_path.exists():
         print("Генерируем данные")
+        length = len(dim_locations)
         for i in tqdm(range(num), desc="stores"):  # Генерируем 50 магазинов
-            city = dim_locations.sample(n=1).iloc[0]
+            #city = dim_locations.sample(n=1).iloc[0]
+            city = dim_locations.iloc[i % len(dim_locations)]
             store = {
                 "store_id": i + 1,
                 "name": fake.company(),
@@ -50,6 +53,11 @@ def get_stores(num=1_000_000):
                 "city": city["city"],
                 "latitude": city["geo_lat"],
                 "longitude": city["geo_lon"],
+                "contact_info": json.dumps({
+                    "phone": fake.phone_number(),
+                    "email": fake.email(),
+                    "website": fake.url()
+                })
             }
             stores.append(store)
 
@@ -158,7 +166,8 @@ def batched_get_stores(batch_size=10_000, num=1_000_000):
                 batch_end = min(batch_start + batch_size, num)
                 
                 for i in range(batch_start, batch_end):
-                    city = dim_locations.sample(n=1).iloc[0]
+                    #city = dim_locations.sample(n=1).iloc[0]
+                    city = dim_locations.iloc[i % len(dim_locations)]
                     store = {
                         "store_id": i + 1,
                         "name": fake.company(),
@@ -167,7 +176,12 @@ def batched_get_stores(batch_size=10_000, num=1_000_000):
                         "city": city["city"],
                         "latitude": city["geo_lat"],
                         "longitude": city["geo_lon"],
-                    }
+                        "contact_info": json.dumps({
+                            "phone": fake.phone_number(),
+                            "email": fake.email(),
+                            "website": fake.url()
+                })
+            }
                     stores.append(store)
 
                 # Преобразуем батч в DataFrame и записываем в файл
@@ -232,8 +246,8 @@ def batched_get_facts(batch_size=10_000, num=100_000_000, dim_num=1_000_000, fil
     else: 
         print(f"Данные уже сгенерированы")
 
-dim_num = 1_000_000
-fact_num = 100_000_000
+dim_num = 20_000
+fact_num = 100_000
 
 dim_locations = get_locations()
 batched_get_stores(batch_size=5_000, num=dim_num)
